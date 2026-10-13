@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>UWBNav · 室内定位</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="brand">UWB<span>Nav</span><small>室内定位工作台</small></div>
+        <div class="connection"><i id="linkDot"></i><span id="linkText">正在连接上位机</span><span id="counter">0 帧</span>
+        </div>
+    </header>
+    <main>
+        <section class="map-section">
+            <div class="map-heading">
+                <div>
+                    <p class="eyebrow">LIVE POSITION</p>
+                    <h1>四基站定位地图</h1>
+                    <p id="mapSubtitle">等待标签距离数据 · 坐标单位为米</p>
+                </div>
+                <button id="fitMap">适应地图</button>
+            </div>
+            <div class="map-frame">
+                <canvas id="map" aria-label="基站和标签平面直角坐标地图"></canvas>
+                <div class="map-help">滚轮缩放 · 拖动平移</div>
+                <div class="map-legend"><span><b class="anchor-key">◆</b> 固定基站</span><span><b class="tag-key">●</b>
+                        移动标签</span><span><b class="poi-key">✚</b> 固定目标</span></div>
+            </div>
+            <div class="map-footer"><span id="positionSummary">尚未收到有效测距帧</span><span>四距离最小二乘 · 固定标签高度</span></div>
+        </section>
+        <aside>
+            <div id="notice" role="status"></div>
+            <section class="panel">
+                <div class="section-head">
+                    <h2>标签实时距离</h2><span id="tagCount">0 个</span>
+                </div>
+                <p class="hint">四个新鲜距离到齐后显示位置；模块 ID 均使用十六进制。</p>
+                <div id="tags">
+                    <div class="empty">等待 ESP32 回传数据<br><small>先启动设备并检查电脑 IP 与 UDP 7788 端口</small></div>
+                </div>
+            </section>
+            <section class="panel">
+                <h2>基站布局</h2>
+                <p class="hint">A/B/C/D 是显示名称；填写对应 UWB 的实际模块 ID。</p>
+                <details>
+                    <summary>矩形快速布局</summary>
+                    <div class="two"><label>AB 宽度 / m<input id="width" type="number" value="10" min="0.01"
+                                step="0.01"></label><label>BC 高度 / m<input id="height" type="number" value="20"
+                                min="0.01" step="0.01"></label>
+                    </div>
+                    <button id="rectangle" class="secondary wide">填入左上、右上、右下、左下坐标</button>
+                </details>
+                <details>
+                    <summary>由六组基站间距离重建</summary>
+                    <p class="hint">AB 两点与一组边长不足以确定任意布局。以下输入六组水平距离；A 为原点，B 在正 X 轴。C/D
+                        上下选择解除镜像歧义。</p>
+                    <div id="pairInputs" class="two"></div>
+                    <div class="two"><label>C 相对 AB<select id="C_side">
+                                <option value="below">下方</option>
+                                <option value="above">上方</option>
+                            </select></label><label>D 相对 AB<select id="D_side">
+                                <option value="below">下方</option>
+                                <option value="above">上方</option>
+                            </select></label></div>
+                    <button id="reconstruct" class="secondary wide">重建坐标建议</button>
+                    <p id="layoutWarning" class="hint"></p>
+                </details>
+                <div id="anchors"></div>
+                <div class="two"><label>标签固定高度 Z / m<input id="tagZ" type="number" value="0"
+                            step="0.01"></label><label>距离过期时间 / s<input id="staleSeconds" type="number" value="4"
+                            min="0.5" max="60" step="0.5"></label></div>
+                <p class="hint">X 向右、Y 向上；Z 是实际高度。若均在同一平面，可统一填 0。图中坐标不代表 UWB 已配置。</p>
+                <button id="saveConfig" class="primary wide">保存布局与设置</button>
+            </section>
+            <section class="panel">
+                <h2>固定物体与导航终点</h2>
+                <div class="two"><label>名称<input id="poiName" placeholder="例如：登机口 G12"
+                            maxlength="40"></label><label>类型<select id="poiKind">
+                            <option>厕所</option>
+                            <option>登机口</option>
+                            <option>导航终点</option>
+                            <option>其他</option>
+                        </select></label></div>
+                <div class="two"><label>X / m<input id="poiX" type="number" value="5" step="0.1"></label><label>Y /
+                        m<input id="poiY" type="number" value="10" step="0.1"></label></div>
+                <button id="addPoi" class="secondary wide">添加固定物体并保存</button>
+                <div id="pois"></div>
+                <p class="hint">此版本展示目标位置，尚不包含避障路径规划。</p>
+            </section>
+            <section class="panel">
+                <details>
+                    <summary>设备与原始串口数据</summary>
+                    <div id="devices"></div>
+                    <pre id="raw">暂无数据</pre>
+                </details>
+            </section>
+        </aside>
+    </main>
+    <script src="/app.js"></script>
+</body>
+
+</html>
